@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BRÉVOLINE — Inventory</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: '#0a0a0c',
+            card: '#141418',
+            accent: '#c9a87c',
+            muted: '#8b8b99',
+            light: '#f5f5f7'
+          },
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            serif: ['Instrument Serif', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    
+    .app-wrapper {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    
+    /* Custom scrollbar */
+    .app-wrapper::-webkit-scrollbar { width: 6px; }
+    .app-wrapper::-webkit-scrollbar-track { background: #0a0a0c; }
+    .app-wrapper::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 3px; }
+    .app-wrapper::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
+    
+    /* Animations */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-60px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(60px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes lineExpand {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+    
+    .animate-fade-up { animation: fadeSlideUp 0.8s ease-out forwards; }
+    .animate-fade-down { animation: fadeSlideDown 0.6s ease-out forwards; }
+    .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
+    .animate-scale-in { animation: scaleIn 0.7s ease-out forwards; }
+    .animate-slide-left { animation: slideInLeft 0.8s ease-out forwards; }
+    .animate-slide-right { animation: slideInRight 0.8s ease-out forwards; }
+    .animate-line { animation: lineExpand 1s ease-out forwards; transform-origin: left; }
+    .animate-float { animation: float 4s ease-in-out infinite; }
+    .animate-pulse-soft { animation: pulse 3s ease-in-out infinite; }
+    
+    /* Gallery slide animations */
+    @keyframes gallerySlideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes gallerySlideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(-100px); }
+    }
+    
+    .gallery-slide {
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .gallery-slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      animation: gallerySlideIn 0.6s ease-out forwards;
+    }
+    
+    /* Modern card scroll animations */
+    @keyframes cardSlideUp {
+      from { opacity: 0; transform: translateY(60px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    @keyframes cardFadeRotate {
+      from { opacity: 0; transform: rotateY(10deg) translateZ(0) translateY(40px); }
+      to { opacity: 1; transform: rotateY(0deg) translateZ(0) translateY(0); }
+    }
+    
+    @keyframes cardSlideLeft {
+      from { opacity: 0; transform: translateX(-80px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes cardSlideRight {
+      from { opacity: 0; transform: translateX(80px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .card-animate { animation: cardSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .card-animate-rotate { animation: cardFadeRotate 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .card-animate-left { animation: cardSlideLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .card-animate-right { animation: cardSlideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    /* Stellated dodecahedron shape using clip-path */
+    .shape-stellated {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+    
+    /* Cloud/Blob shape */
+    .shape-blob {
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+      animation: blobShift 6s ease-in-out infinite;
+    }
+    
+    @keyframes blobShift {
+      0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+      25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+      50% { border-radius: 70% 30% 46% 66% / 30% 60% 70% 60%; }
+      75% { border-radius: 63% 35% 40% 68% / 60% 50% 40% 60%; }
+    }
+    
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
+    .delay-400 { animation-delay: 0.4s; }
+    .delay-500 { animation-delay: 0.5s; }
+    .delay-600 { animation-delay: 0.6s; }
+    .delay-700 { animation-delay: 0.7s; }
+    .delay-800 { animation-delay: 0.8s; }
+    
+    /* Initial hidden state for scroll animations */
+    .scroll-hidden {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .scroll-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .scroll-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .scroll-right {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .scroll-left.scroll-visible,
+    .scroll-right.scroll-visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    /* Card animation starting state */
+    .service-card.opacity-0,
+    .portfolio-card.opacity-0,
+    .process-step.opacity-0,
+    .testimonial-card.opacity-0 {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+    
+    /* Glass effect */
+    .glass {
+      background: rgba(20, 20, 24, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Gradient backgrounds */
+    .gradient-radial {
+      background: radial-gradient(ellipse at center, rgba(201, 168, 124, 0.08) 0%, transparent 70%);
+    }
+    
+    .gradient-mesh {
+      background: 
+        radial-gradient(at 20% 30%, rgba(201, 168, 124, 0.1) 0%, transparent 50%),
+        radial-gradient(at 80% 70%, rgba(139, 139, 153, 0.08) 0%, transparent 50%);
+    }
+    
+    /* Button styles */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+    
+    .btn-primary:hover::before {
+      transform: translateX(100%);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px -10px rgba(201, 168, 124, 0.4);
+    }
+    
+    /* Card hover effects */
+    .service-card {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .service-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.5);
+    }
+    
+    .service-card:hover .card-icon {
+      transform: scale(1.1);
+    }
+    
+    .card-icon {
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    /* Portfolio card */
+    .portfolio-card {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .portfolio-card:hover {
+      transform: scale(1.02);
+    }
+    
+    .portfolio-card:hover .portfolio-overlay {
+      opacity: 1;
+    }
+    
+    .portfolio-overlay {
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    
+    /* Horizontal scroll container */
+    .horizontal-scroll {
+      display: flex;
+      gap: 1.5rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 1rem 0;
+      scrollbar-width: none;
+    }
+    
+    .horizontal-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .horizontal-scroll > * {
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
+    
+    /* Process step */
+    .process-step {
+      position: relative;
+    }
+    
+    .process-step::after {
+      content: '';
+      position: absolute;
+      top: 2rem;
+      left: calc(100% + 0.5rem);
+      width: calc(100% - 1rem);
+      height: 1px;
+      background: linear-gradient(90deg, rgba(201, 168, 124, 0.4), transparent);
+    }
+    
+    .process-step:last-child::after {
+      display: none;
+    }
+    
+    /* Nav link hover */
+    .nav-link {
+      position: relative;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    /* Text gradient */
+    .text-gradient {
+      background: linear-gradient(135deg, #f5f5f7 0%, #c9a87c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Decorative elements */
+    .deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 124, 0.1);
+      pointer-events: none;
+    }
+    
+    .deco-grid {
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    
+    /* Mobile menu */
+    .mobile-menu {
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .mobile-menu.active {
+      transform: translateX(0);
+    }
+    
+    /* Stat counter */
+    .stat-value {
+      font-variant-numeric: tabular-nums;
+    }
+    
+    /* Feature icon pulse */
+    .feature-icon-wrapper {
+      position: relative;
+    }
+    
+    .feature-icon-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 168, 124, 0.2);
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-surface text-light font-sans">
+  <div class="app-wrapper w-full" id="app-wrapper"><!-- Navigation -->
+   <nav class="fixed top-0 left-0 right-0 z-50 glass animate-fade-down" id="navbar">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+     <div class="flex items-center justify-between"><!-- Logo --> <a href="#" class="flex items-center gap-3 group">
+       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center border border-accent/20 group-hover:border-accent/40 transition-colors">
+        <svg class="w-5 h-5 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+       </div><span class="font-serif text-xl text-light" id="brand-name">BRÉVOLINE</span> </a> <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-8"><a href="#services" class="nav-link text-sm text-muted hover:text-light transition-colors">Services</a> <a href="#work" class="nav-link text-sm text-muted hover:text-light transition-colors">Work</a> <a href="#process" class="nav-link text-sm text-muted hover:text-light transition-colors">Process</a> <a href="#about" class="nav-link text-sm text-muted hover:text-light transition-colors">About</a> <a href="#contact" class="btn-primary px-5 py-2.5 bg-accent text-surface rounded-full text-sm font-medium"> Start Project </a>
+      </div><!-- Mobile Menu Button --> <button class="md:hidden w-10 h-10 flex items-center justify-center" onclick="toggleMobileMenu()">
+       <svg class="w-6 h-6 text-light" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+       </svg></button>
+     </div>
+    </div>
+   </nav><!-- Mobile Menu -->
+   <div class="mobile-menu fixed inset-0 z-40 bg-surface/98 backdrop-blur-xl md:hidden" id="mobile-menu">
+    <div class="flex flex-col items-center justify-center h-full gap-8"><a href="#services" onclick="toggleMobileMenu()" class="text-2xl text-light hover:text-accent transition-colors">Services</a> <a href="#work" onclick="toggleMobileMenu()" class="text-2xl text-light hover:text-accent transition-colors">Work</a> <a href="#process" onclick="toggleMobileMenu()" class="text-2xl text-light hover:text-accent transition-colors">Process</a> <a href="#about" onclick="toggleMobileMenu()" class="text-2xl text-light hover:text-accent transition-colors">About</a> <a href="#contact" onclick="toggleMobileMenu()" class="btn-primary mt-4 px-8 py-3 bg-accent text-surface rounded-full text-lg font-medium"> Start Project </a> <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center">
+      <svg class="w-6 h-6 text-light" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+      </svg></button>
+    </div>
+   </div><!-- Hero Section -->
+   <section class="relative min-h-screen flex items-center justify-center overflow-hidden gradient-mesh"><!-- Decorative elements -->
+    <div class="deco-circle w-[600px] h-[600px] -top-[200px] -right-[200px] animate-pulse-soft"></div>
+    <div class="deco-circle w-[400px] h-[400px] -bottom-[100px] -left-[100px] animate-pulse-soft delay-500"></div>
+    <div class="absolute inset-0 deco-grid opacity-30"></div><!-- Floating shapes -->
+    <div class="absolute top-1/4 left-[10%] w-20 h-20 border border-accent/10 rounded-2xl rotate-12 animate-float"></div>
+    <div class="absolute bottom-1/4 right-[15%] w-16 h-16 border border-muted/10 rounded-full animate-float delay-300"></div>
+    <div class="absolute top-1/3 right-[20%] w-3 h-3 bg-accent/30 rounded-full animate-pulse-soft"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-20 text-center"><!-- Tagline -->
+     <div class="animate-fade-up opacity-0 delay-100"><span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-white/5 text-xs text-muted uppercase tracking-widest" id="hero-tagline"> <span class="w-1.5 h-1.5 bg-accent rounded-full"></span> Premium Digital Solutions </span>
+     </div><!-- Main Headline -->
+     <h1 class="mt-8 animate-fade-up opacity-0 delay-200"><span class="block font-serif text-5xl md:text-7xl lg:text-8xl text-light leading-[1.1]" id="hero-headline"> We craft digital<br><span class="text-gradient">experiences</span> that<br>
+        elevate brands </span></h1><!-- Description -->
+     <p class="mt-8 max-w-2xl mx-auto text-lg md:text-xl text-muted leading-relaxed animate-fade-up opacity-0 delay-300" id="hero-description">A strategic design studio specializing in brand identity, web design, and digital solutions that transform businesses into industry leaders.</p><!-- CTA Buttons -->
+     <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up opacity-0 delay-400"><a href="#contact" class="btn-primary px-8 py-4 bg-accent text-surface rounded-full font-medium flex items-center gap-2"> Start Your Project 
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+       </svg></a> <a href="#work" class="px-8 py-4 border border-white/10 text-light rounded-full font-medium hover:bg-white/5 transition-colors"> View Our Work </a>
+     </div><!-- Stats -->
+     <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-up opacity-0 delay-500">
+      <div class="text-center md:col-start-2">
+       <div class="stat-value text-3xl md:text-4xl font-serif text-accent">
+        10+
+       </div>
+       <div class="mt-2 text-sm text-muted">
+        Projects Delivered
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="stat-value text-3xl md:text-4xl font-serif text-accent">
+        98%
+       </div>
+       <div class="mt-2 text-sm text-muted">
+        Excellence
+       </div>
+      </div>
+     </div>
+    </div><!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-fade-up opacity-0 delay-700">
+     <div class="flex flex-col items-center gap-2 text-muted"><span class="text-xs uppercase tracking-widest">Scroll</span>
+      <div class="w-px h-12 bg-gradient-to-b from-muted to-transparent"></div>
+     </div>
+    </div>
+   </section><!-- Services Section -->
+   <section id="services" class="relative py-32 bg-surface">
+    <div class="absolute inset-0 gradient-radial opacity-50"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6"><!-- Section Header -->
+     <div class="max-w-3xl scroll-hidden" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Our Services</span>
+      <h2 class="mt-4 font-serif text-4xl md:text-5xl lg:text-6xl text-light" id="services-title">Digital solutions<br>
+       tailored to your vision</h2>
+      <p class="mt-6 text-lg text-muted">From concept to completion, we deliver comprehensive design services that drive growth and establish market presence.</p>
+     </div><!-- Services Horizontal Scroll -->
+     <div class="mt-16 horizontal-scroll" id="services-scroll"><!-- Service Card 1 - Logo Design -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z" /> <path d="M2 17l10 5 10-5" /> <path d="M2 12l10 5 10-5" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">Logo Design</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">Distinctive, memorable logos that capture your brand essence and create lasting impressions across all touchpoints.</p>
+      </div><!-- Service Card 2 - Website Design -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-100" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /> <path d="M3 9h18" /> <path d="M9 21V9" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">Website Design</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">Beautiful, conversion-focused websites that engage visitors and transform them into loyal customers.</p>
+      </div><!-- Service Card 3 - UI/UX Design -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-200" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19l7-7 3 3-7 7-3-3z" /> <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" /> <path d="M2 2l7.586 7.586" /> <circle cx="11" cy="11" r="2" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">UI/UX Design</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">User-centered interfaces that blend aesthetics with functionality for seamless digital experiences.</p>
+      </div><!-- Service Card 4 - Brand Identity -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-300" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /> <line x1="4" y1="22" x2="4" y2="15" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">Brand Identity</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">Comprehensive brand systems including visual identity, guidelines, and collateral that tell your story.</p>
+      </div><!-- Service Card 5 - Web Development -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-400" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6" /> <polyline points="8 6 2 12 8 18" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">Web Development</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">High-performance, scalable websites built with modern technologies and best practices.</p>
+      </div><!-- Service Card 6 - Social Media -->
+      <div class="service-card w-[340px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-500" data-scroll>
+       <div class="card-icon w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3" /> <circle cx="6" cy="12" r="3" /> <circle cx="18" cy="19" r="3" /> <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /> <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+       </div>
+       <h3 class="text-xl font-medium text-light">Social Media</h3>
+       <p class="mt-3 text-muted text-sm leading-relaxed">Cohesive social media design kits that maintain brand consistency across all platforms.</p>
+      </div>
+     </div><!-- Scroll hint -->
+     <div class="mt-8 flex items-center justify-center gap-2 text-muted text-sm md:hidden">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg><span>Swipe to explore</span>
+     </div>
+    </div>
+   </section><!-- Why Choose Us Section -->
+   <section id="about" class="relative py-32 bg-card">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6">
+     <div class="grid lg:grid-cols-2 gap-16 items-center"><!-- Left Content -->
+      <div class="scroll-left" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Why Choose Us</span>
+       <h2 class="mt-4 font-serif text-4xl md:text-5xl text-light">Partnership built on trust &amp; excellence</h2>
+       <p class="mt-6 text-lg text-muted leading-relaxed">We don't just deliver projects—we build lasting relationships. Our approach combines strategic thinking with creative execution to deliver results that exceed expectations.</p><!-- Features List -->
+       <div class="mt-10 space-y-6">
+        <div class="flex gap-4">
+         <div class="feature-icon-wrapper flex-shrink-0 w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+         </div>
+         <div>
+          <h4 class="text-light font-medium">Dedicated Project Manager</h4>
+          <p class="mt-1 text-sm text-muted">Single point of contact ensuring seamless communication throughout your project.</p>
+         </div>
+        </div>
+        <div class="flex gap-4">
+         <div class="feature-icon-wrapper flex-shrink-0 w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+         </div>
+         <div>
+          <h4 class="text-light font-medium">Fast Turnaround</h4>
+          <p class="mt-1 text-sm text-muted">Efficient workflows that deliver quality work without unnecessary delays.</p>
+         </div>
+        </div>
+        <div class="flex gap-4">
+         <div class="feature-icon-wrapper flex-shrink-0 w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+         </div>
+         <div>
+          <h4 class="text-light font-medium">Unlimited Revisions</h4>
+          <p class="mt-1 text-sm text-muted">We iterate until you're completely satisfied with the final result.</p>
+         </div>
+        </div>
+       </div>
+      </div><!-- Right Visual -->
+      <div class="relative scroll-right" data-scroll>
+       <div class="relative aspect-square max-w-md mx-auto"><!-- Background shapes -->
+        <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-accent/20 to-transparent"></div>
+        <div class="absolute inset-4 rounded-2xl bg-surface border border-white/10"></div><!-- Content inside -->
+        <div class="absolute inset-8 flex flex-col justify-between">
+         <div class="space-y-4">
+          <div class="h-3 w-3/4 bg-white/5 rounded"></div>
+          <div class="h-3 w-1/2 bg-white/5 rounded"></div>
+         </div><!-- Floating cards -->
+         <div class="space-y-3">
+          <div class="glass p-4 rounded-xl animate-float">
+           <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center"><span class="text-accent">✓</span>
+            </div>
+            <div>
+             <div class="text-sm text-light">
+              Project Delivered
+             </div>
+             <div class="text-xs text-muted">
+              Brand Identity Package
+             </div>
+            </div>
+           </div>
+          </div>
+          <div class="glass p-4 rounded-xl ml-8 animate-float delay-200">
+           <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center"><span class="text-green-400">★</span>
+            </div>
+            <div>
+             <div class="text-sm text-light">
+              5.0 Review
+             </div>
+             <div class="text-xs text-muted">
+              "Exceptional work!"
+             </div>
+            </div>
+           </div>
+          </div>
+         </div>
+         <div class="space-y-4">
+          <div class="h-2 w-full bg-white/5 rounded"></div>
+          <div class="h-2 w-2/3 bg-accent/20 rounded"></div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Portfolio Section -->
+   <section id="work" class="relative py-32 bg-surface">
+    <div class="relative z-10 max-w-7xl mx-auto px-6"><!-- Section Header -->
+     <div class="text-center max-w-3xl mx-auto scroll-hidden" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Selected Work</span>
+      <h2 class="mt-4 font-serif text-4xl md:text-5xl lg:text-6xl text-light">Projects that speak<br>
+       for themselves</h2>
+     </div><!-- Portfolio Grid -->
+     <div class="mt-16 grid md:grid-cols-2 gap-6"><!-- Project 1 -->
+      <a href="https://glitchforge97.github.io/iscm-copy/" target="_blank" rel="noopener noreferrer" class="portfolio-card relative aspect-[4/3] rounded-3xl overflow-hidden cursor-pointer scroll-hidden" data-scroll>
+       <div class="absolute inset-0 bg-gradient-to-br from-accent/30 to-card"></div>
+       <div class="absolute inset-0 p-8 flex flex-col justify-between">
+        <div class="flex items-start justify-between"><span class="px-3 py-1 rounded-full bg-surface/50 text-xs text-light">Website Design</span> <span class="text-accent font-serif text-2xl">01</span>
+        </div>
+        <div>
+         <h3 class="font-serif text-2xl text-light">Ideal School & College, Motijheel</h3>
+         <p class="mt-2 text-sm text-muted">Modern website for a premier educational institution</p>
+        </div>
+       </div>
+       <div class="portfolio-overlay absolute inset-0 bg-accent/90 flex items-center justify-center"><span class="text-surface font-medium">Visit Website →</span>
+       </div>
+      </a><!-- Project 2 -->
+      <a href="https://glitchforge97.github.io/neuro-forge/" target="_blank" rel="noopener noreferrer" class="portfolio-card relative aspect-[4/3] rounded-3xl overflow-hidden cursor-pointer scroll-hidden delay-100" data-scroll>
+       <div class="absolute inset-0 bg-gradient-to-br from-muted/30 to-card"></div>
+       <div class="absolute inset-0 p-8 flex flex-col justify-between">
+        <div class="flex items-start justify-between"><span class="px-3 py-1 rounded-full bg-surface/50 text-xs text-light">Product Landing</span> <span class="text-muted font-serif text-2xl">02</span>
+        </div>
+        <div>
+         <h3 class="font-serif text-2xl text-light">NeuroForge</h3>
+         <p class="mt-2 text-sm text-muted">Premium product landing experience for human-AI collaboration</p>
+        </div>
+       </div>
+       <div class="portfolio-overlay absolute inset-0 bg-muted/90 flex items-center justify-center"><span class="text-surface font-medium">Visit Website →</span>
+       </div>
+      </a><!-- Project 3 -->
+      <a href="https://glitchforge97.github.io/forge-atrium/" target="_blank" rel="noopener noreferrer" class="portfolio-card relative aspect-[4/3] rounded-3xl overflow-hidden cursor-pointer scroll-hidden delay-200" data-scroll>
+       <div class="absolute inset-0 bg-gradient-to-br from-emerald-900/30 to-card"></div>
+       <div class="absolute inset-0 p-8 flex flex-col justify-between">
+        <div class="flex items-start justify-between"><span class="px-3 py-1 rounded-full bg-surface/50 text-xs text-light">Dining Platform</span> <span class="text-emerald-400/70 font-serif text-2xl">03</span>
+        </div>
+        <div>
+         <h3 class="font-serif text-2xl text-light">Forge's Atrium</h3>
+         <p class="mt-2 text-sm text-muted">Fine-dining platform for seamless guest experience and reservations</p>
+        </div>
+       </div>
+       <div class="portfolio-overlay absolute inset-0 bg-emerald-700/90 flex items-center justify-center"><span class="text-light font-medium">Visit Website →</span>
+       </div>
+      </a><!-- Project 4 -->
+      <a href="https://glitchforge97.github.io/forge-care/" target="_blank" rel="noopener noreferrer" class="portfolio-card relative aspect-[4/3] rounded-3xl overflow-hidden cursor-pointer scroll-hidden delay-300" data-scroll>
+       <div class="absolute inset-0 bg-gradient-to-br from-violet-900/30 to-card"></div>
+       <div class="absolute inset-0 p-8 flex flex-col justify-between">
+        <div class="flex items-start justify-between"><span class="px-3 py-1 rounded-full bg-surface/50 text-xs text-light">Hospital Platform</span> <span class="text-violet-400/70 font-serif text-2xl">04</span>
+        </div>
+        <div>
+         <h3 class="font-serif text-2xl text-light">ForgeCare Medical Center</h3>
+         <p class="mt-2 text-sm text-muted">Modern digital hospital platform for appointments and doctor discovery</p>
+        </div>
+       </div>
+       <div class="portfolio-overlay absolute inset-0 bg-violet-700/90 flex items-center justify-center"><span class="text-light font-medium">Visit Website →</span>
+       </div>
+      </a>
+     </div><!-- View All Link -->
+     <div class="mt-12 text-center scroll-hidden" data-scroll><a href="#" class="inline-flex items-center gap-2 text-accent hover:text-light transition-colors"> <span>View All Projects</span>
+       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+       </svg></a>
+     </div><!-- Gallery Work Section -->
+     <div class="mt-20 pt-20 border-t border-white/5">
+      <div class="text-center max-w-3xl mx-auto scroll-hidden mb-12" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Gallery Work</span>
+       <h2 class="mt-4 font-serif text-3xl md:text-5xl text-light">Visual Showcase</h2>
+      </div>
+      <!-- Gallery Container -->
+      <div class="relative w-full overflow-hidden">
+       <div class="flex items-center justify-center min-h-[600px] md:min-h-[700px] relative" id="galleryContainer">
+        <!-- Gallery Slide 1 - Blob (1:1 ratio) -->
+        <div class="gallery-slide active absolute inset-0 flex items-center justify-center">
+         <div class="flex items-center justify-center w-72 h-72 md:w-96 md:h-96">
+          <img src="https://i.ibb.co.com/SX1VnKXB/L1.jpg" alt="Gallery 1" class="w-full h-full object-cover shape-blob shadow-2xl" />
+         </div>
+        </div>
+        <!-- Gallery Slide 2 - Blob (1:1 ratio) -->
+        <div class="gallery-slide absolute inset-0 flex items-center justify-center">
+         <div class="flex items-center justify-center w-80 h-80 md:w-96 md:h-96">
+          <img src="https://i.ibb.co.com/fdG7Hmb2/L2.jpg" alt="Gallery 2" class="w-full h-full object-cover shape-blob shadow-2xl" />
+         </div>
+        </div>
+        <!-- Gallery Slide 3 - Wide Blob (16:9 ratio) -->
+        <div class="gallery-slide absolute inset-0 flex items-center justify-center">
+         <div class="flex items-center justify-center w-full max-w-3xl px-6">
+          <img src="https://i.ibb.co.com/0pxzKsZL/B1.png" alt="Gallery 3" class="w-full h-auto aspect-video object-cover shape-blob shadow-2xl rounded-2xl" />
+         </div>
+        </div>
+        <!-- Gallery Slide 4 - Wide Blob (16:9 ratio) -->
+        <div class="gallery-slide absolute inset-0 flex items-center justify-center">
+         <div class="flex items-center justify-center w-full max-w-3xl px-6">
+          <img src="https://i.ibb.co.com/WNy34Kq3/B2.png" alt="Gallery 4" class="w-full h-auto aspect-video object-cover shape-blob shadow-2xl rounded-2xl" />
+         </div>
+        </div>
+       </div>
+       <!-- Gallery Controls -->
+       <div class="flex items-center justify-center gap-4 mt-12">
+        <button onclick="previousGallerySlide()" class="w-12 h-12 rounded-full bg-card border border-white/10 flex items-center justify-center text-light hover:bg-accent hover:text-surface hover:border-accent transition-all">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <!-- Dots -->
+        <div class="flex gap-2">
+         <button onclick="goToGallerySlide(0)" class="w-2 h-2 rounded-full bg-accent transition-all" id="dot-0"></button>
+         <button onclick="goToGallerySlide(1)" class="w-2 h-2 rounded-full bg-white/20 hover:bg-white/40 transition-all" id="dot-1"></button>
+         <button onclick="goToGallerySlide(2)" class="w-2 h-2 rounded-full bg-white/20 hover:bg-white/40 transition-all" id="dot-2"></button>
+         <button onclick="goToGallerySlide(3)" class="w-2 h-2 rounded-full bg-white/20 hover:bg-white/40 transition-all" id="dot-3"></button>
+        </div>
+        <button onclick="nextGallerySlide()" class="w-12 h-12 rounded-full bg-card border border-white/10 flex items-center justify-center text-light hover:bg-accent hover:text-surface hover:border-accent transition-all">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Process Section -->
+   <section id="process" class="relative py-32 bg-card overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+    <div class="absolute inset-0 gradient-radial"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6"><!-- Section Header -->
+     <div class="text-center max-w-3xl mx-auto scroll-hidden" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Our Process</span>
+      <h2 class="mt-4 font-serif text-4xl md:text-5xl lg:text-6xl text-light">From vision to reality,<br>
+       simplified</h2>
+      <p class="mt-6 text-lg text-muted">A streamlined approach that ensures clarity, collaboration, and exceptional outcomes.</p>
+     </div><!-- Process Steps -->
+     <div class="mt-20 grid md:grid-cols-4 gap-8"><!-- Step 1 -->
+      <div class="process-step text-center md:text-left scroll-hidden" data-scroll>
+       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6"><span class="font-serif text-2xl text-accent">01</span>
+       </div>
+       <h3 class="text-xl font-medium text-light">Discovery</h3>
+       <p class="mt-3 text-sm text-muted leading-relaxed">We dive deep into your goals, audience, and competition to build a strategic foundation.</p>
+      </div><!-- Step 2 -->
+      <div class="process-step text-center md:text-left scroll-hidden delay-100" data-scroll>
+       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6"><span class="font-serif text-2xl text-accent">02</span>
+       </div>
+       <h3 class="text-xl font-medium text-light">Strategy</h3>
+       <p class="mt-3 text-sm text-muted leading-relaxed">We develop a clear roadmap and creative direction aligned with your business objectives.</p>
+      </div><!-- Step 3 -->
+      <div class="process-step text-center md:text-left scroll-hidden delay-200" data-scroll>
+       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6"><span class="font-serif text-2xl text-accent">03</span>
+       </div>
+       <h3 class="text-xl font-medium text-light">Design</h3>
+       <p class="mt-3 text-sm text-muted leading-relaxed">Our team crafts stunning visuals with iterative feedback until perfection is achieved.</p>
+      </div><!-- Step 4 -->
+      <div class="process-step text-center md:text-left scroll-hidden delay-300" data-scroll>
+       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 mb-6"><span class="font-serif text-2xl text-accent">04</span>
+       </div>
+       <h3 class="text-xl font-medium text-light">Deliver</h3>
+       <p class="mt-3 text-sm text-muted leading-relaxed">We hand off polished assets with documentation and ongoing support for your success.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- Testimonials Section -->
+   <section class="relative py-32 bg-surface">
+    <div class="relative z-10 max-w-7xl mx-auto px-6"><!-- Section Header -->
+     <div class="text-center max-w-3xl mx-auto scroll-hidden" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Testimonials</span>
+      <h2 class="mt-4 font-serif text-4xl md:text-5xl text-light">Trusted by industry leaders</h2>
+     </div><!-- Testimonials Slider -->
+     <div class="mt-16 flex justify-center"><!-- Testimonial 3 -->
+      <div class="w-[400px] p-8 bg-card rounded-3xl border border-white/5 scroll-hidden delay-200" data-scroll>
+       <div class="flex items-center gap-1 mb-6">
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewbox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewbox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewbox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewbox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewbox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+       </div>
+       <p class="text-light leading-relaxed">"We have collaborated with BRÉVOLINE on our website, and it has been an amazing experience. They did everything smoothly and delivered an amazing website. We're very satisfied with the results!"</p>
+       <div class="mt-6 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center"><span class="text-accent font-medium">DK</span>
+        </div>
+        <div>
+         <div class="text-light font-medium">
+          Dhulikona Organization
+         </div>
+         <div class="text-sm text-muted">
+          Chief Operating Officer
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- CTA Section -->
+   <section id="contact" class="relative py-32 bg-card overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+    <div class="absolute inset-0 gradient-mesh"></div><!-- Decorative elements -->
+    <div class="absolute top-1/4 left-[5%] w-32 h-32 border border-accent/10 rounded-full animate-pulse-soft"></div>
+    <div class="absolute bottom-1/4 right-[5%] w-48 h-48 border border-accent/5 rounded-full animate-pulse-soft delay-300"></div>
+    <div class="relative z-10 max-w-4xl mx-auto px-6 text-center">
+     <div class="scroll-hidden" data-scroll><span class="text-accent text-sm uppercase tracking-widest">Ready to Start?</span>
+      <h2 class="mt-4 font-serif text-4xl md:text-5xl lg:text-6xl text-light" id="cta-headline">Let's create something<br>
+       extraordinary together</h2>
+      <p class="mt-6 text-lg text-muted max-w-2xl mx-auto" id="cta-description">Transform your brand with our expert design solutions. Schedule a free consultation and discover how we can elevate your digital presence.</p><!-- CTA Buttons -->
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"><a href="mailto:brevoline@gmail.com" class="btn-primary px-8 py-4 bg-accent text-surface rounded-full font-medium flex items-center gap-2"> Schedule Free Consultation 
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+        </svg></a> <a href="mailto:brevoline@gmail.com" class="px-8 py-4 border border-white/10 text-light rounded-full font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg> brevoline@gmail.com </a>
+      </div>
+     </div><!-- Trust badges -->
+
+    </div>
+   </section><!-- Footer -->
+   <footer class="bg-surface py-16">
+    <div class="max-w-7xl mx-auto px-6">
+     <div class="grid md:grid-cols-4 gap-12"><!-- Brand -->
+      <div class="md:col-span-2"><a href="#" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center border border-accent/20">
+         <svg class="w-5 h-5 text-accent" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+         </svg>
+        </div><span class="font-serif text-xl text-light">BRÉVOLINE</span> </a>
+       <p class="mt-4 text-muted text-sm max-w-sm">Premium digital design and inventory solutions crafting exceptional brand experiences for innovative businesses.</p>
+       <div class="mt-6 flex gap-4"><a href="https://www.instagram.com/brevo_line/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-card border border-white/5 flex items-center justify-center text-muted hover:text-accent hover:border-accent/20 transition-colors">
+         <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+         </svg></a>
+       </div>
+      </div><!-- Links -->
+      <div>
+       <h4 class="text-light font-medium mb-4">Services</h4>
+       <ul class="space-y-3">
+        <li><a href="#services" class="text-sm text-muted hover:text-accent transition-colors">Logo Design</a></li>
+        <li><a href="#services" class="text-sm text-muted hover:text-accent transition-colors">Website Design</a></li>
+        <li><a href="#services" class="text-sm text-muted hover:text-accent transition-colors">UI/UX Design</a></li>
+        <li><a href="#services" class="text-sm text-muted hover:text-accent transition-colors">Brand Identity</a></li>
+       </ul>
+      </div>
+      <div>
+       <h4 class="text-light font-medium mb-4">Company</h4>
+       <ul class="space-y-3">
+        <li><a href="#about" class="text-sm text-muted hover:text-accent transition-colors">About Us</a></li>
+        <li><a href="#work" class="text-sm text-muted hover:text-accent transition-colors">Our Work</a></li>
+        <li><a href="#process" class="text-sm text-muted hover:text-accent transition-colors">Process</a></li>
+        <li><a href="#contact" class="text-sm text-muted hover:text-accent transition-colors">Contact</a></li>
+       </ul>
+     </div><!-- Bottom -->
+     <div class="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="text-sm text-muted">
+       <p>© 2026 BRÉVOLINE. All rights reserved.</p>
+       <p class="mt-2">Powered by <a href="https://glitchforge97.github.io/forge-portfolio/" target="_blank" rel="noopener noreferrer" class="text-accent hover:text-light transition-colors">GlitchForge</a></p>
+      </div>
+      <div class="flex gap-6"><a href="terms.html" class="text-sm text-muted hover:text-accent transition-colors">Terms of Service</a> <a href="privacy.html" class="text-sm text-muted hover:text-accent transition-colors">Privacy Policy</a>
+      </div>
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      hero_tagline: 'Premium Digital Solutions',
+      hero_headline: 'We craft digital experiences that elevate brands',
+      hero_description: 'A strategic design studio specializing in brand identity, web design, and digital solutions that transform businesses into industry leaders.',
+      services_title: 'Digital solutions tailored to your vision',
+      cta_headline: "Let's create something extraordinary together",
+      cta_description: 'Transform your brand with our expert design solutions. Schedule a free consultation and discover how we can elevate your digital presence.',
+      background_color: '#0a0a0c',
+      card_color: '#141418',
+      text_color: '#f5f5f7',
+      accent_color: '#c9a87c',
+      muted_color: '#8b8b99'
+    };
+
+    // Initialize Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => {
+          // Update hero section
+          const heroTagline = document.getElementById('hero-tagline');
+          if (heroTagline) {
+            heroTagline.innerHTML = `<span class="w-1.5 h-1.5 bg-accent rounded-full"></span>${config.hero_tagline || defaultConfig.hero_tagline}`;
+          }
+
+          const heroHeadline = document.getElementById('hero-headline');
+          if (heroHeadline) {
+            const headlineText = config.hero_headline || defaultConfig.hero_headline;
+            const words = headlineText.split(' ');
+            const midPoint = Math.floor(words.length / 2);
+            heroHeadline.innerHTML = `${words.slice(0, midPoint).join(' ')}<br><span class="text-gradient">${words.slice(midPoint, midPoint + 2).join(' ')}</span> ${words.slice(midPoint + 2).join(' ')}`;
+          }
+
+          const heroDescription = document.getElementById('hero-description');
+          if (heroDescription) {
+            heroDescription.textContent = config.hero_description || defaultConfig.hero_description;
+          }
+
+          // Update services section
+          const servicesTitle = document.getElementById('services-title');
+          if (servicesTitle) {
+            const titleText = config.services_title || defaultConfig.services_title;
+            const words = titleText.split(' ');
+            const midPoint = Math.ceil(words.length / 2);
+            servicesTitle.innerHTML = `${words.slice(0, midPoint).join(' ')}<br>${words.slice(midPoint).join(' ')}`;
+          }
+
+          // Update CTA section
+          const ctaHeadline = document.getElementById('cta-headline');
+          if (ctaHeadline) {
+            const ctaText = config.cta_headline || defaultConfig.cta_headline;
+            const words = ctaText.split(' ');
+            const midPoint = Math.ceil(words.length / 2);
+            ctaHeadline.innerHTML = `${words.slice(0, midPoint).join(' ')}<br>${words.slice(midPoint).join(' ')}`;
+          }
+
+          const ctaDescription = document.getElementById('cta-description');
+          if (ctaDescription) {
+            ctaDescription.textContent = config.cta_description || defaultConfig.cta_description;
+          }
+
+          // Apply colors
+          document.documentElement.style.setProperty('--bg-color', config.background_color || defaultConfig.background_color);
+          document.documentElement.style.setProperty('--card-color', config.card_color || defaultConfig.card_color);
+          document.documentElement.style.setProperty('--text-color', config.text_color || defaultConfig.text_color);
+          document.documentElement.style.setProperty('--accent-color', config.accent_color || defaultConfig.accent_color);
+          document.documentElement.style.setProperty('--muted-color', config.muted_color || defaultConfig.muted_color);
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.card_color || defaultConfig.card_color,
+              set: (value) => {
+                config.card_color = value;
+                window.elementSdk.setConfig({ card_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.muted_color || defaultConfig.muted_color,
+              set: (value) => {
+                config.muted_color = value;
+                window.elementSdk.setConfig({ muted_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['hero_tagline', config.hero_tagline || defaultConfig.hero_tagline],
+          ['hero_headline', config.hero_headline || defaultConfig.hero_headline],
+          ['hero_description', config.hero_description || defaultConfig.hero_description],
+          ['services_title', config.services_title || defaultConfig.services_title],
+          ['cta_headline', config.cta_headline || defaultConfig.cta_headline],
+          ['cta_description', config.cta_description || defaultConfig.cta_description]
+        ])
+      });
+    }
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('active');
+    }
+
+    // Scroll-based animations using Intersection Observer
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          // Add delay based on data attribute or default
+          const delay = entry.target.classList.contains('delay-100') ? 100 :
+                       entry.target.classList.contains('delay-200') ? 200 :
+                       entry.target.classList.contains('delay-300') ? 300 :
+                       entry.target.classList.contains('delay-400') ? 400 :
+                       entry.target.classList.contains('delay-500') ? 500 : 0;
+          
+          setTimeout(() => {
+            entry.target.classList.add('scroll-visible');
+          }, delay);
+        }
+      });
+    }, observerOptions);
+
+    // Observe all scroll-animated elements
+    document.querySelectorAll('[data-scroll]').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Navbar background on scroll
+    const appWrapper = document.getElementById('app-wrapper');
+    const navbar = document.getElementById('navbar');
+    
+    appWrapper.addEventListener('scroll', () => {
+      if (appWrapper.scrollTop > 50) {
+        navbar.classList.add('bg-surface/90');
+      } else {
+        navbar.classList.remove('bg-surface/90');
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Horizontal scroll with mouse wheel
+    const servicesScroll = document.getElementById('services-scroll');
+    if (servicesScroll) {
+      servicesScroll.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+          e.preventDefault();
+          servicesScroll.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    }
+
+    // Counter animation for stats
+    function animateCounters() {
+      const counters = document.querySelectorAll('.stat-value');
+      counters.forEach(counter => {
+        const target = counter.textContent;
+        const isPercentage = target.includes('%');
+        const isPlus = target.includes('+');
+        const isYear = target.includes('yr');
+        let numericValue = parseInt(target.replace(/[^0-9]/g, ''));
+        
+        if (isNaN(numericValue)) return;
+        
+        let current = 0;
+        const increment = numericValue / 60;
+        const duration = 1500;
+        const startTime = performance.now();
+        
+        function updateCounter(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3);
+          
+          current = Math.floor(numericValue * easeProgress);
+          
+          let displayValue = current.toString();
+          if (isPercentage) displayValue += '%';
+          if (isPlus) displayValue += '+';
+          if (isYear) displayValue = current + 'yr';
+          
+          counter.textContent = displayValue;
+          
+          if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+          }
+        }
+        
+        requestAnimationFrame(updateCounter);
+      });
+    }
+
+    // Trigger counter animation when stats section is visible
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounters();
+          statsObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    const statsSection = document.querySelector('.stat-value')?.parentElement?.parentElement;
+    if (statsSection) {
+      statsObserver.observe(statsSection);
+    }
+
+    // Gallery controls
+    let currentGallerySlide = 0;
+    const totalGallerySlides = 4;
+
+    function showGallerySlide(index) {
+      const slides = document.querySelectorAll('.gallery-slide');
+      const dots = document.querySelectorAll('[id^="dot-"]');
+      
+      // Normalize index
+      currentGallerySlide = (index + totalGallerySlides) % totalGallerySlides;
+      
+      // Update slides
+      slides.forEach((slide, i) => {
+        slide.classList.remove('active');
+        if (i === currentGallerySlide) {
+          setTimeout(() => {
+            slide.classList.add('active');
+          }, 10);
+        }
+      });
+      
+      // Update dots
+      dots.forEach((dot, i) => {
+        if (i === currentGallerySlide) {
+          dot.classList.remove('bg-white/20', 'hover:bg-white/40');
+          dot.classList.add('bg-accent');
+        } else {
+          dot.classList.remove('bg-accent');
+          dot.classList.add('bg-white/20', 'hover:bg-white/40');
+        }
+      });
+    }
+
+    function previousGallerySlide() {
+      showGallerySlide(currentGallerySlide - 1);
+    }
+
+    function nextGallerySlide() {
+      showGallerySlide(currentGallerySlide + 1);
+    }
+
+    function goToGallerySlide(index) {
+      showGallerySlide(index);
+    }
+
+    // Initialize gallery
+    document.addEventListener('DOMContentLoaded', () => {
+      showGallerySlide(0);
+    });
+
+    // Modern card scroll animations
+    const cardObserverOptions = {
+      threshold: 0.15,
+      rootMargin: '0px 0px -60px 0px'
+    };
+
+    const cardObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, idx) => {
+        if (entry.isIntersecting) {
+          const delay = idx % 2 === 0 ? 0 : 100;
+          const animClass = idx % 3 === 0 ? 'card-animate' : 
+                           idx % 3 === 1 ? 'card-animate-left' : 'card-animate-right';
+          
+          setTimeout(() => {
+            entry.target.classList.add(animClass);
+          }, delay);
+          
+          cardObserver.unobserve(entry.target);
+        }
+      });
+    }, cardObserverOptions);
+
+    // Apply card animations to service cards, portfolio items, and process steps
+    document.querySelectorAll('.service-card, .portfolio-card, .process-step, .testimonial-card').forEach(card => {
+      card.classList.add('opacity-0', 'transform', 'transition-all', 'duration-800');
+      cardObserver.observe(card);
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cd53cd8a5867e63',t:'MTc3MDk5NTI3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
